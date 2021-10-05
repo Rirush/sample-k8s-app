@@ -11,7 +11,7 @@ metadata:
   labels:
     app: sample-server
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
       app: sample-server
@@ -20,6 +20,13 @@ spec:
       labels:
         app: sample-server
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: sample-server
       containers:
         - name: sample-server
           image: ghcr.io/rirush/sample-k8s-app:sha-4ffcf08
