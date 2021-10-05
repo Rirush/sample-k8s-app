@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  ports:
+    - port: 5432
+      protocol: TCP
+      name: pg
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+      namespace: postgres
+    spec:
+      containers:
+        - name: pg
+          image: postgres:13.4-alpine
+          env:
+            - name: POSTGRES_PASSWORD
+              value: VerySecurePassword
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: pg
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pgdata
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+        namespace: database
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: longhorn
+        resources:
+          requests:
+            storage: 5Gi
